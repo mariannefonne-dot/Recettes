@@ -88,21 +88,11 @@ def reset_admin():
         abort(403, description="Clé incorrecte.")
     if len(nouveau_mdp) < 6:
         abort(400, description="Mot de passe trop court.")
-    conn = base_donnees.obtenir_connexion()
-    try:
-        cur = conn.cursor()
-        hash_mdp = generate_password_hash(nouveau_mdp)
-        cur.execute(
-            f"UPDATE utilisateurs SET mot_de_passe_hash = {base_donnees.PH} WHERE est_admin = {base_donnees.PH}",
-            (hash_mdp, True if base_donnees.USE_POSTGRES else 1),
-        )
-        conn.commit()
-        n = cur.rowcount
-    finally:
-        conn.close()
+    hash_mdp = generate_password_hash(nouveau_mdp)
+    n = base_donnees.reinitialiser_mot_de_passe_admin(hash_mdp)
     if n == 0:
         abort(404, description="Aucun admin trouvé.")
-    return jsonify({"message": f"Mot de passe réinitialisé pour {n} compte(s)."}), 200
+    return jsonify({"message": f"Mot de passe réinitialisé."}), 200
 
 
 @app.post("/api/auth/setup")

@@ -597,6 +597,22 @@ def invitation_valide(token):
         conn.close()
 
 
+def reinitialiser_mot_de_passe_admin(mot_de_passe_hash):
+    """Met à jour le mot de passe de tous les comptes admin. Retourne le nombre de comptes modifiés."""
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        valeur_admin = True if USE_POSTGRES else 1
+        cur.execute(
+            f"UPDATE utilisateurs SET mot_de_passe_hash={PH} WHERE est_admin={PH}",
+            (mot_de_passe_hash, valeur_admin),
+        )
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+
+
 def consommer_invitation(token):
     """Marque le token comme utilisé."""
     conn = obtenir_connexion()
