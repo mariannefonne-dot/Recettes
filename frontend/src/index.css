@@ -1113,3 +1113,112 @@ main {
   font-weight: bold;
   color: #c0392b;
 }
+
+/* --- Pages d'authentification (connexion, inscription, setup) --- */
+
+.page-auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fdf9f3;
+  padding: 2rem;
+}
+
+.carte-auth {
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.titre-auth {
+  font-size: 1.8rem;
+  text-align: center;
+  color: #c0392b;
+  margin-bottom: 0.5rem;
+}
+
+.sous-titre-auth {
+  text-align: center;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.formulaire-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.erreur-auth {
+  color: #c0392b;
+  background: #fdecea;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.bouton-auth {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-family: Georgia, serif;
+}
+
+.bouton-auth:hover:not(:disabled) {
+  background-color: #a93226;
+}
+
+.bouton-auth:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Bouton déconnexion dans le header --- */
+
+.bouton-deconnexion {
+  background-color: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+}
+
+.bouton-deconnexion:hover {
+  background-color: rgba(255,255,255,0.25);
+}
+
+/* --- Nom de l'utilisateur dans le header --- */
+
+.utilisateur-nom {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+}
+
+/* --- Bouton inviter + message de confirmation --- */
+
+.bouton-inviter-conteneur {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-copie {
+  color: #a8e6a3;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
