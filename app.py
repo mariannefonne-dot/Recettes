@@ -78,6 +78,33 @@ def admin_requis(f):
 
 # ── Routes d'authentification (publiques) ────────────────────────────────────
 
+@app.post("/api/auth/reset-admin")
+def reset_admin():
+    """Réinitialise le mot de passe admin via la SECRET_KEY. Endpoint temporaire."""
+    corps = request.get_json(silent=True) or {}
+    cle = corps.get("cle", "")
+    nouveau_mdp = corps.get("mot_de_passe", "")
+    if cle != SECRET_KEY:
+        abort(403, description="Clé incorrecte.")
+    if len(nouveau_mdp) < 6:
+        abort(400, description="Mot de passe trop court.")
+    conn = base_donnees.obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        hash_mdp = generate_password_hash(nouveau_mdp)
+        cur.execute(
+            f"UPDATE utilisateurs SET mot_de_passe_hash = {base_donnees.PH} WHERE est_admin = {base_donnees.PH}",
+            (hash_mdp, True if base_donnees.USE_POSTGRES else 1),
+        )
+        conn.commit()
+        n = cur.rowcount
+    finally:
+        conn.close()
+    if n == 0:
+        abort(404, description="Aucun admin trouvé.")
+    return jsonify({"message": f"Mot de passe réinitialisé pour {n} compte(s)."}), 200
+
+
 @app.post("/api/auth/setup")
 def setup():
     """Crée le premier compte administrateur. Ne fonctionne que si aucun utilisateur n'existe."""
