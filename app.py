@@ -110,7 +110,13 @@ def setup():
     if cle != SECRET_KEY and base_donnees.compter_utilisateurs() > 0:
         abort(403, description="Un compte administrateur existe déjà.")
     hash_mdp = generate_password_hash(mot_de_passe)
-    utilisateur = base_donnees.creer_utilisateur(email, hash_mdp, nom, est_admin=True)
+    # Si l'email existe déjà, on met à jour le mot de passe au lieu de créer un doublon.
+    existant = base_donnees.obtenir_utilisateur_par_email(email)
+    if existant:
+        base_donnees.reinitialiser_mot_de_passe_admin(hash_mdp)
+        utilisateur = base_donnees.obtenir_utilisateur(existant["id"])
+    else:
+        utilisateur = base_donnees.creer_utilisateur(email, hash_mdp, nom, est_admin=True)
     token = _generer_token(utilisateur["id"])
     return jsonify({"token": token, "utilisateur": utilisateur}), 201
 
