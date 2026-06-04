@@ -16,7 +16,7 @@ import base_donnees
 
 app = Flask(__name__)
 # Autorise le front React (servi sur un autre port) à appeler l'API.
-CORS(app)
+CORS(app, origins="*")
 
 DOSSIER_IMAGES = Path(__file__).parent / "static" / "images"
 EXTENSIONS_AUTORISEES = {"png", "jpg", "jpeg", "gif", "webp"}
