@@ -2,3 +2,9 @@
   base    = "frontend"
   command = "npm install && npm run build"
   publish = "dist"
+
+# Redirige toutes les URLs vers index.html pour que React Router fonctionne.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
