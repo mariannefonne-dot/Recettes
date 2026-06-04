@@ -20,7 +20,20 @@
       "Bash(.\\\\venv\\\\Scripts\\\\python.exe app.py)",
       "Bash(npm run *)",
       "PowerShell(Start-Process -FilePath \"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\\\\venv\\\\Scripts\\\\python.exe\" -ArgumentList \"app.py\" -WorkingDirectory \"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\" -WindowStyle Minimized)",
-      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd `\"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\\\\frontend`\" && npm run dev\" -WindowStyle Minimized; Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest -Uri http://localhost:5000/api/recettes -UseBasicParsing -TimeoutSec 3; \"Backend OK: $\\($r.StatusCode\\)\" } catch { \"Backend pas encore prêt: $_\" })"
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd `\"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\\\\frontend`\" && npm run dev\" -WindowStyle Minimized; Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest -Uri http://localhost:5000/api/recettes -UseBasicParsing -TimeoutSec 3; \"Backend OK: $\\($r.StatusCode\\)\" } catch { \"Backend pas encore prêt: $_\" })",
+      "Bash(pip3 install *)",
+      "Bash(python3 -m pip install PyJWT==2.9.0 -q)",
+      "Bash(python -m pip install PyJWT==2.9.0 -q)",
+      "Bash(python app.py)",
+      "Bash(curl -s http://localhost:5000/api/recettes -H \"Authorization: Bearer mauvais_token\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(where python *)",
+      "Bash(ls venv*)",
+      "Bash(ls .venv*)",
+      "Bash(Scripts/pip install *)",
+      "Bash(./Scripts/pip.exe install *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "WebFetch(domain:recettes-backend-production-5087.up.railway.app)"
     ]
   }
 }

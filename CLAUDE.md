@@ -26,20 +26,44 @@ Application web pour consulter, ajouter et rechercher des recettes de cuisine.
 L'application est séparée en deux parties qui communiquent via une **API REST JSON** :
 
 ```
-Front React (port 5173) ──/api──> Backend Flask (port 5000) ──> SQLite (recettes.db)
+Front React (port 5173) ──/api──> Backend Flask (port 5000) ──> SQLite (recettes.db) [local]
                                               └──> images dans static/images/
+
+En production :
+Netlify (frontend) ──────────────> Railway (backend Flask) ──> Neon PostgreSQL
 ```
 
 ## Stack technique
 
 - **Backend** : Python 3.12 + Flask 3.1.3 — expose une API REST (routes `/api/...`)
-- **Stockage** : base **SQLite** (`recettes.db`) via `base_donnees.py` (couche d'accès aux données). Les listes (ingrédients, étapes) sont stockées en JSON dans des colonnes texte.
-- **Images** : téléversées vers `static/images/`, servies par Flask
+- **Stockage local** : base **SQLite** (`recettes.db`) via `base_donnees.py`
+- **Stockage production** : **PostgreSQL** (Neon) — détecté automatiquement via la variable d'environnement `DATABASE_URL`
+- **Dual DB** : `base_donnees.py` détecte `DATABASE_URL` et bascule entre SQLite (placeholder `?`) et PostgreSQL (placeholder `%s`)
+- **Images** : téléversées vers `static/images/`, servies par Flask (en ligne, les images ne sont pas persistées)
 - **Frontend** : **React** (Vite + React Router) dans `frontend/`, consomme l'API
 - **Tests** : pytest sur l'API backend (base SQLite temporaire isolée par test)
 - **Déploiement local** : Docker + Docker Compose (2 services : `backend`, `frontend`)
 
-> `recettes.json` a servi de source à la migration initiale (`migrer_json_vers_sqlite.py`) puis a été supprimé. Les données vivent désormais dans `recettes.db`.
+> `recettes.json` a servi de source à la migration initiale (`migrer_json_vers_sqlite.py`) puis a été supprimé. Les données vivent désormais dans `recettes.db` (local) ou Neon PostgreSQL (production).
+
+## Déploiement en ligne
+
+| Service | Rôle | URL |
+|---|---|---|
+| **Netlify** | Frontend React (statique, gratuit) | https://startling-centaur-d09681.netlify.app |
+| **Railway** | Backend Flask (gratuit avec $5 crédit/mois) | https://recettes-backend-production-5087.up.railway.app |
+| **Neon** | PostgreSQL hébergé (gratuit) | dashboard sur neon.tech |
+
+**Variables d'environnement Railway** (à ne jamais committer) :
+- `DATABASE_URL` — chaîne de connexion Neon PostgreSQL
+- `PORT` — géré automatiquement par Railway
+
+**Variable d'environnement Netlify** :
+- `VITE_API_URL` — URL du backend Railway (ex: `https://recettes-backend-production-5087.up.railway.app`)
+
+**Fichiers de configuration déploiement** :
+- `netlify.toml` — indique à Netlify de builder depuis `frontend/`
+- `requirements.txt` — inclut `psycopg2-binary` et `gunicorn` pour Railway
 
 ## Structure des fichiers frontend
 
