@@ -1,0 +1,1115 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Georgia, serif;
+  background-color: #fdf9f3;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* --- En-tête --- */
+header {
+  background-color: #c0392b;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bouton-mes-recettes {
+  background-color: rgba(255,255,255,0.15);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.bouton-mes-recettes:hover {
+  background-color: rgba(255,255,255,0.25);
+}
+
+.bouton-ajouter {
+  background-color: white;
+  color: #c0392b;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.bouton-ajouter:hover {
+  background-color: #f0f0f0;
+}
+
+.titre-mes-recettes {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.mes-recettes-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* --- Panier de courses --- */
+.panier-courses {
+  max-width: 700px;
+}
+
+.panier-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.panier-entete h1 {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.panier-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.panier-compte {
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.panier-reinitialiser {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.panier-reinitialiser:hover {
+  background-color: #f5f5f5;
+}
+
+.panier-sous-titre {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.panier-sous-titre a {
+  color: #c0392b;
+}
+
+.panier-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.panier-groupe {
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.panier-recette-titre {
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: #fdf3f2;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #e0d8cc;
+}
+
+.panier-recette-titre a {
+  color: #c0392b;
+  text-decoration: none;
+}
+
+.panier-recette-titre a:hover {
+  text-decoration: underline;
+}
+
+.panier-ingredients {
+  list-style: none;
+  padding: 0.5rem 0;
+}
+
+.panier-ingredient {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.panier-ingredient:hover {
+  background-color: #fdf9f3;
+}
+
+.panier-ingredient.coche .panier-ingredient-texte {
+  text-decoration: line-through;
+  color: #bbb;
+}
+
+.panier-checkbox {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.panier-ingredient-texte {
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.panier-badge {
+  background-color: #c0392b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* --- Mise en page avec sidebar --- */
+.mise-en-page {
+  display: grid;
+  grid-template-columns: 1fr 900px 210px 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+  align-items: flex-start;
+}
+
+main {
+  grid-column: 2;
+}
+
+.mise-en-page.sans-sidebar {
+  grid-template-columns: 1fr;
+  padding: 1rem 2rem;
+}
+
+.mise-en-page.sans-sidebar main {
+  grid-column: 1;
+}
+
+/* --- Mini calendrier sidebar --- */
+.mini-cal {
+  grid-column: 3;
+  width: 210px;
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 7.5rem;
+  margin-left: 6rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.mini-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.mini-cal-titre {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+.mini-cal-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #c0392b;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.mini-cal-btn:hover { color: #a93226; }
+
+.mini-cal-grille {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.mini-cal-entete-jour {
+  text-align: center;
+  font-size: 0.65rem;
+  color: #aaa;
+  font-weight: bold;
+  padding-bottom: 0.3rem;
+}
+
+.mini-cal-jour {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.15s;
+}
+
+.mini-cal-jour:hover {
+  background: #fdecea;
+}
+
+.mini-cal-jour.a-recette {
+  background: #c0392b;
+  color: white;
+  font-weight: bold;
+}
+
+.mini-cal-jour.a-recette:hover {
+  background: #a93226;
+}
+
+.mini-cal-jour.aujourdhui {
+  outline: 2px solid #c0392b;
+  outline-offset: -2px;
+  font-weight: bold;
+}
+
+.mini-cal-jour.a-recette.aujourdhui {
+  outline-color: white;
+}
+
+/* --- Encart Ma sélection dans la sidebar --- */
+.mini-selection {
+  margin-top: 1.25rem;
+  border-top: 1px solid #e0d8cc;
+  padding-top: 1rem;
+}
+
+.mini-selection-titre {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.mini-selection-lien {
+  font-size: 0.72rem;
+  color: #c0392b;
+  text-decoration: none;
+  font-weight: normal;
+}
+
+.mini-selection-lien:hover { text-decoration: underline; }
+
+.mini-selection-vide {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+.mini-selection-liste {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mini-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.3rem;
+  border-radius: 5px;
+  transition: background 0.15s;
+}
+
+.mini-selection-item:hover {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.mini-selection-img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.mini-selection-nom {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mini-selection-plus {
+  font-size: 0.75rem;
+  color: #888;
+  text-align: center;
+  padding-top: 0.2rem;
+}
+
+.mini-selection-plus a {
+  color: #c0392b;
+  text-decoration: none;
+}
+
+.mini-selection-plus a:hover { text-decoration: underline; }
+
+/* --- Filtres --- */
+.filtres {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.filtres input[type="text"],
+.filtres select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  flex: 1;
+  min-width: 180px;
+  font-family: inherit;
+}
+
+/* --- Sélecteur de catégories multi-choix --- */
+.selecteur-categories {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+
+.selecteur-bouton {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.selecteur-bouton:hover {
+  border-color: #aaa;
+}
+
+.selecteur-libelle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+}
+
+.selecteur-fleche {
+  font-size: 0.7rem;
+  color: #888;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.selecteur-liste {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 100;
+  padding: 0.5rem 0;
+}
+
+.selecteur-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.selecteur-option:hover {
+  background-color: #fdf3f2;
+}
+
+.selecteur-option input[type="checkbox"] {
+  accent-color: #c0392b;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.selecteur-reinitialiser {
+  display: block;
+  width: calc(100% - 1.5rem);
+  margin: 0.4rem 0.75rem 0.2rem;
+  padding: 0.35rem;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.selecteur-reinitialiser:hover {
+  background-color: #f5f5f5;
+}
+
+.lien-reinitialiser {
+  color: #888;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* --- Liste de recettes --- */
+.liste-recettes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.carte-recette {
+  background-color: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
+.bouton-favori-carte {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  z-index: 1;
+}
+
+.bouton-selection-carte {
+  position: absolute;
+  top: 0.6rem;
+  right: 2.2rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  z-index: 1;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
+.bouton-selection-carte.actif,
+.bouton-selection-carte:hover {
+  opacity: 1;
+}
+
+.carte-recette:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.carte-recette h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #c0392b;
+}
+
+.infos {
+  font-size: 0.85rem;
+  color: #888;
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.etiquette {
+  display: inline-block;
+  background-color: #fdecea;
+  color: #c0392b;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  margin-top: 0.25rem;
+}
+
+.message-vide {
+  color: #888;
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 1.1rem;
+}
+
+.message-vide a {
+  color: #c0392b;
+}
+
+.message-erreur {
+  background-color: #fdecea;
+  color: #c0392b;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* --- Photos --- */
+.photo-recette {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.photo-carte {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.apercu-image {
+  max-width: 200px;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* --- Détail d'une recette --- */
+.detail-recette {
+  background-color: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.entete-recette {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.entete-recette h1 {
+  font-size: 1.8rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bouton-modifier {
+  padding: 0.4rem 0.9rem;
+  background-color: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.bouton-modifier:hover {
+  background-color: #e0e0e0;
+}
+
+.bouton-supprimer {
+  padding: 0.4rem 0.9rem;
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.bouton-supprimer:hover {
+  background-color: #a93226;
+}
+
+.meta-recette {
+  display: flex;
+  gap: 2rem;
+  color: #888;
+  font-size: 0.95rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.detail-recette section {
+  margin-bottom: 1.5rem;
+}
+
+.detail-recette h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 2px solid #fdecea;
+  padding-bottom: 0.3rem;
+}
+
+.detail-recette ul,
+.detail-recette ol {
+  padding-left: 1.5rem;
+}
+
+.detail-recette li {
+  margin-bottom: 0.4rem;
+}
+
+.lien-retour {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: #888;
+  text-decoration: none;
+}
+
+.lien-retour:hover {
+  color: #333;
+}
+
+/* --- Formulaire --- */
+.formulaire-recette {
+  background-color: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 700px;
+}
+
+.formulaire-recette h1 {
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+}
+
+.champ {
+  margin-bottom: 1.25rem;
+}
+
+.champ label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+.champ input,
+.champ select,
+.champ textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.champ textarea {
+  resize: vertical;
+}
+
+.champ-ligne {
+  display: flex;
+  gap: 1rem;
+}
+
+.champ-ligne .champ {
+  flex: 1;
+}
+
+.optionnel,
+.aide {
+  font-weight: normal;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.boutons-formulaire {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.bouton-sauvegarder {
+  padding: 0.6rem 1.5rem;
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.bouton-sauvegarder:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.bouton-sauvegarder:hover:not(:disabled) {
+  background-color: #a93226;
+}
+
+.lien-annuler {
+  color: #888;
+  text-decoration: underline;
+}
+
+/* --- Calendrier --- */
+.calendrier-page {
+  /* Casse le max-width du main pour utiliser toute la largeur de l'écran. */
+  width: calc(100vw - 4rem);
+  margin-left: calc(-50vw + 50% + 2rem);
+}
+
+.calendrier-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.cal-nav-bouton {
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 6px;
+  font-size: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  color: #c0392b;
+  flex-shrink: 0;
+}
+
+.cal-nav-bouton:hover { background: #fdf3f2; }
+
+.cal-nav-centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cal-titre-semaine {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.cal-bouton-aujourdhui {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.cal-bouton-aujourdhui:hover { background: #f5f5f5; }
+
+.calendrier-grille {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.cal-jour {
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cal-jour-actif {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px #fdecea;
+}
+
+.cal-jour-entete {
+  background: #fdf9f3;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #e0d8cc;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-jour-actif .cal-jour-entete {
+  background: #fdecea;
+}
+
+.cal-jour-nom {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.cal-jour-date {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+.cal-repas {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #f5f0e8;
+}
+
+.cal-repas:last-child { border-bottom: none; }
+
+.cal-repas-label {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-bottom: 0.35rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cal-recette-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fdecea;
+  border-radius: 5px;
+  padding: 0.25rem 0.4rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.cal-recette-nom {
+  flex: 1;
+  color: #c0392b;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cal-recette-nom:hover { text-decoration: underline; }
+
+.cal-recette-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cal-supprimer {
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.cal-supprimer:hover { opacity: 1; }
+
+.cal-ajouter-btn {
+  background: none;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  width: 100%;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  color: #aaa;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.cal-ajouter-btn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Modal */
+.cal-modal-fond {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.cal-modal {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cal-modal-titre {
+  font-size: 1.2rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.cal-modal-titre small {
+  font-size: 0.9rem;
+  color: #888;
+  font-weight: normal;
+}
+
+.cal-modal-select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.modal-succes {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #2e7d32;
+  padding: 1rem 0;
+}
+
+.cal-modal-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* --- Page d'accueil --- */
+.accueil {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.accueil-titre {
+  font-size: 2rem;
+  margin-bottom: 2.5rem;
+  color: #333;
+}
+
+.bouton-ajouter-accueil {
+  display: inline-block;
+  margin-top: 2.5rem;
+  padding: 0.75rem 2rem;
+  background-color: #c0392b;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.bouton-ajouter-accueil:hover {
+  background-color: #a93226;
+}
+
+.grille-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.carte-categorie {
+  background-color: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 12px;
+  padding: 2.5rem 1rem;
+  text-decoration: none;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.carte-categorie:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.categorie-emoji {
+  font-size: 2.5rem;
+}
+
+.categorie-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #c0392b;
+}

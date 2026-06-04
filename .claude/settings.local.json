@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.hellofresh.ca)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:hfresh.info)",
+      "WebFetch(domain:gw.hellofresh.com)",
+      "Bash(docker compose *)",
+      "Bash(venv/Scripts/python.exe -m pip install flask-cors==5.0.0 pytest==8.3.4 -q)",
+      "Bash(venv/Scripts/python.exe -m pytest tests/ -q)",
+      "Bash(venv/Scripts/python.exe migrer_json_vers_sqlite.py)",
+      "Bash(curl -s http://localhost:5000/api/recettes)",
+      "Bash(curl -s http://localhost:5173/api/categories)",
+      "Bash(curl -s http://localhost:5173/)",
+      "PowerShell(Start-Process \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\")",
+      "PowerShell(\"Docker Desktop relanc�\")",
+      "Bash(docker info *)",
+      "Bash(break)",
+      "Bash(.\\\\venv\\\\Scripts\\\\python.exe app.py)",
+      "Bash(npm run *)",
+      "PowerShell(Start-Process -FilePath \"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\\\\venv\\\\Scripts\\\\python.exe\" -ArgumentList \"app.py\" -WorkingDirectory \"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\" -WindowStyle Minimized)",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd `\"C:\\\\Users\\\\maria\\\\Documents\\\\Projet Claude\\\\Recettes\\\\frontend`\" && npm run dev\" -WindowStyle Minimized; Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest -Uri http://localhost:5000/api/recettes -UseBasicParsing -TimeoutSec 3; \"Backend OK: $\\($r.StatusCode\\)\" } catch { \"Backend pas encore prêt: $_\" })"
+    ]
+  }
+}

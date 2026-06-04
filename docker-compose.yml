@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persistance : la base SQLite et les images téléversées survivent
+      # aux redémarrages et reconstructions du conteneur.
+      - ./recettes.db:/app/recettes.db
+      - ./static/images:/app/static/images
+    environment:
+      - FLASK_APP=app.py
+      - CHEMIN_BD=/app/recettes.db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      # Indique au proxy Vite d'envoyer /api et /static vers le service backend.
+      - VITE_PROXY_TARGET=http://backend:5000
+    depends_on:
+      - backend

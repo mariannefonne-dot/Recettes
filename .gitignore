@@ -1,0 +1,17 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Images locales (non gérées en ligne)
+static/images/
+
+# Variables d'environnement
+.env
+.env.local
