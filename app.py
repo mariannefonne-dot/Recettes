@@ -97,15 +97,18 @@ def reset_admin():
 
 @app.post("/api/auth/setup")
 def setup():
-    """Crée le premier compte administrateur. Ne fonctionne que si aucun utilisateur n'existe."""
-    if base_donnees.compter_utilisateurs() > 0:
-        abort(403, description="Un compte administrateur existe déjà.")
+    """Crée le premier compte administrateur, ou force la recréation avec la SECRET_KEY."""
     corps = request.get_json(silent=True) or {}
     email = corps.get("email", "").strip().lower()
     mot_de_passe = corps.get("mot_de_passe", "")
     nom = corps.get("nom", "").strip()
+    cle = corps.get("cle", "")
     if not email or not mot_de_passe or not nom:
         abort(400, description="Email, mot de passe et prénom requis.")
+    # Sans cle : seulement si aucun utilisateur n'existe.
+    # Avec la bonne cle : toujours autorisé (reset admin).
+    if cle != SECRET_KEY and base_donnees.compter_utilisateurs() > 0:
+        abort(403, description="Un compte administrateur existe déjà.")
     hash_mdp = generate_password_hash(mot_de_passe)
     utilisateur = base_donnees.creer_utilisateur(email, hash_mdp, nom, est_admin=True)
     token = _generer_token(utilisateur["id"])
