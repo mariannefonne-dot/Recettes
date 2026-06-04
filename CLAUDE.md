@@ -14,12 +14,16 @@ Application web pour consulter, ajouter et rechercher des recettes de cuisine.
 - [x] Téléverser une photo depuis le formulaire (upload)
 - [x] Dockerisation multi-services avec `docker-compose.yml`
 - [x] Page d'accueil avec grille de catégories cliquables + bouton ajouter en bas
-- [x] Mettre une recette en favori (❤️) — persisté en base, filtrable depuis l'accueil
+- [x] Mettre une recette en favori (❤️) — persisté par utilisateur, filtrable depuis l'accueil
 - [x] Sélectionner des recettes (🔖) pour les retrouver dans "Ma sélection"
 - [x] Page "Ma sélection" — liste des recettes sélectionnées
 - [x] Panier de courses — cumul et addition automatique des ingrédients des recettes sélectionnées, avec cases à cocher (état persisté dans localStorage), articles cochés repoussés en bas
 - [x] Calendrier hebdomadaire — assigner des recettes à chaque jour (déjeuner/dîner), navigation entre semaines, bouton "📅 Calendrier" sur la page de détail
 - [x] Sidebar droite — mini-calendrier mensuel (jours avec recettes surlignés en rouge) + encart "Ma sélection"
+- [x] Système de comptes utilisateurs avec authentification JWT
+- [x] Inscription par invitation uniquement (lien unique généré par l'admin)
+- [x] Page "Mon compte" — infos de connexion + génération de lien d'invitation (admin)
+- [x] Favoris, sélection et calendrier séparés par utilisateur
 
 ## Architecture
 
@@ -36,15 +40,15 @@ Netlify (frontend) ──────────────> Railway (backend 
 ## Stack technique
 
 - **Backend** : Python 3.12 + Flask 3.1.3 — expose une API REST (routes `/api/...`)
+- **Auth** : tokens JWT (PyJWT) signés avec `SECRET_KEY`, validité 30 jours
+- **Mots de passe** : hachés avec `werkzeug.security.generate_password_hash`
 - **Stockage local** : base **SQLite** (`recettes.db`) via `base_donnees.py`
-- **Stockage production** : **PostgreSQL** (Neon) — détecté automatiquement via la variable d'environnement `DATABASE_URL`
-- **Dual DB** : `base_donnees.py` détecte `DATABASE_URL` et bascule entre SQLite (placeholder `?`) et PostgreSQL (placeholder `%s`)
-- **Images** : téléversées vers `static/images/`, servies par Flask (en ligne, les images ne sont pas persistées)
+- **Stockage production** : **PostgreSQL** (Neon) — détecté automatiquement via `DATABASE_URL`
+- **Dual DB** : `base_donnees.py` détecte `DATABASE_URL` et bascule entre SQLite (`?`) et PostgreSQL (`%s`). Pour PostgreSQL, `initialiser_bd()` utilise `autocommit=True` pour que chaque CREATE TABLE soit indépendant.
+- **Images** : téléversées vers `static/images/`, servies par Flask (non persistées en ligne)
 - **Frontend** : **React** (Vite + React Router) dans `frontend/`, consomme l'API
 - **Tests** : pytest sur l'API backend (base SQLite temporaire isolée par test)
 - **Déploiement local** : Docker + Docker Compose (2 services : `backend`, `frontend`)
-
-> `recettes.json` a servi de source à la migration initiale (`migrer_json_vers_sqlite.py`) puis a été supprimé. Les données vivent désormais dans `recettes.db` (local) ou Neon PostgreSQL (production).
 
 ## Déploiement en ligne
 
@@ -56,24 +60,35 @@ Netlify (frontend) ──────────────> Railway (backend 
 
 **Variables d'environnement Railway** (à ne jamais committer) :
 - `DATABASE_URL` — chaîne de connexion Neon PostgreSQL
+- `SECRET_KEY` — clé secrète pour signer les JWT (ex: `mes-recettes-super-secret-2026-marianne`)
 - `PORT` — géré automatiquement par Railway
 
 **Variable d'environnement Netlify** :
 - `VITE_API_URL` — URL du backend Railway (ex: `https://recettes-backend-production-5087.up.railway.app`)
 
 **Fichiers de configuration déploiement** :
-- `netlify.toml` — indique à Netlify de builder depuis `frontend/`
-- `requirements.txt` — inclut `psycopg2-binary` et `gunicorn` pour Railway
+- `netlify.toml` — builder depuis `frontend/`, redirect `/*` vers `index.html` (React Router)
+- `requirements.txt` — inclut `psycopg2-binary`, `gunicorn`, `PyJWT`
+
+## Système d'authentification
+
+- Toutes les routes API (sauf `/api/auth/*`) nécessitent un token JWT dans l'en-tête `Authorization: Bearer <token>`
+- **Premier compte** : visiter `/setup` sur le frontend — crée le compte administrateur (une seule fois)
+- **Réinitialisation mot de passe admin** : appeler `/api/auth/setup` en POST avec `{"email":"...","nom":"...","mot_de_passe":"...","cle":"<SECRET_KEY>"}`
+- **Invitations** : l'admin génère un lien depuis sa page Compte (`/compte`) — lien à usage unique
+- **Données par utilisateur** : favoris, sélections, calendrier sont propres à chaque compte. Les recettes sont partagées.
 
 ## Structure des fichiers frontend
 
 ```
 frontend/src/
-├── App.jsx                      — routes, header global, layout avec sidebar
-├── api.js                       — toutes les fonctions d'appel à l'API
+├── App.jsx                      — routes, layout, protection des pages (auth)
+├── api.js                       — toutes les fonctions d'appel à l'API (avec token JWT)
 ├── categories.js                — liste partagée des catégories
 ├── parseIngredient.js           — parser et additionneur d'ingrédients (panier)
 ├── index.css                    — styles globaux
+├── contexte/
+│   └── Auth.jsx                 — contexte React : token, utilisateur, connexion/déconnexion
 ├── components/
 │   └── MiniCalendrier.jsx       — sidebar : mini-calendrier mensuel + encart Ma sélection
 └── pages/
@@ -83,31 +98,48 @@ frontend/src/
     ├── FormulaireRecette.jsx    — ajout/modification
     ├── MesRecettes.jsx          — recettes marquées 🔖
     ├── PanierCourses.jsx        — liste de courses avec cases à cocher
-    └── Calendrier.jsx           — calendrier hebdomadaire
+    ├── Calendrier.jsx           — calendrier hebdomadaire
+    ├── Compte.jsx               — infos utilisateur + génération d'invitation (admin)
+    ├── Connexion.jsx            — formulaire de connexion
+    ├── Inscription.jsx          — formulaire d'inscription (avec token d'invitation)
+    └── Setup.jsx                — création du premier compte admin
 ```
 
 ## Principales routes de l'API
 
-| Méthode | Route | Rôle |
-|---|---|---|
-| GET | `/api/recettes?recherche=&categorie=` | Liste (avec recherche/filtre) |
-| GET | `/api/recettes/<id>` | Détail d'une recette |
-| POST | `/api/recettes` | Créer (JSON) |
-| PUT | `/api/recettes/<id>` | Modifier (JSON) |
-| DELETE | `/api/recettes/<id>` | Supprimer |
-| POST | `/api/recettes/<id>/favori` | Basculer favori |
-| POST | `/api/recettes/<id>/selection` | Basculer sélection (🔖) |
-| GET | `/api/categories` | Liste des catégories existantes |
-| POST | `/api/televerser-image` | Upload d'une image (multipart) |
-| GET | `/api/calendrier?debut=&fin=` | Entrées du calendrier sur une période |
-| POST | `/api/calendrier` | Ajouter une recette au calendrier |
-| DELETE | `/api/calendrier/<id>` | Retirer une entrée du calendrier |
+| Méthode | Route | Auth | Rôle |
+|---|---|---|---|
+| POST | `/api/auth/setup` | non | Créer le premier admin (ou reset avec SECRET_KEY) |
+| POST | `/api/auth/connexion` | non | Se connecter, retourne un token JWT |
+| POST | `/api/auth/inscription` | non | Créer un compte avec un token d'invitation |
+| GET | `/api/auth/moi` | oui | Infos de l'utilisateur connecté |
+| POST | `/api/auth/inviter` | oui (admin) | Générer un token d'invitation |
+| GET | `/api/recettes?recherche=&categorie=` | oui | Liste (avec recherche/filtre) |
+| GET | `/api/recettes/<id>` | oui | Détail d'une recette |
+| POST | `/api/recettes` | oui | Créer (JSON) |
+| PUT | `/api/recettes/<id>` | oui | Modifier (JSON) |
+| DELETE | `/api/recettes/<id>` | oui | Supprimer |
+| POST | `/api/recettes/<id>/favori` | oui | Basculer favori (par utilisateur) |
+| POST | `/api/recettes/<id>/selection` | oui | Basculer sélection (par utilisateur) |
+| GET | `/api/categories` | oui | Liste des catégories existantes |
+| POST | `/api/televerser-image` | oui | Upload d'une image (multipart) |
+| GET | `/api/calendrier?debut=&fin=` | oui | Calendrier de l'utilisateur sur une période |
+| POST | `/api/calendrier` | oui | Ajouter une recette au calendrier |
+| DELETE | `/api/calendrier/<id>` | oui | Retirer une entrée du calendrier |
 
 ## Structure de la base de données
 
-**Table `recettes`** : `id`, `titre`, `categorie`, `ingredients` (JSON), `etapes` (JSON), `temps_preparation`, `portions`, `image`, `favori` (0/1), `selectionne` (0/1)
+**Table `recettes`** : `id`, `titre`, `categorie`, `ingredients` (JSON), `etapes` (JSON), `temps_preparation`, `portions`, `image`, `favori` (ignoré), `selectionne` (ignoré)
 
-**Table `calendrier`** : `id`, `date` (YYYY-MM-DD), `recette_id`, `moment` (dejeuner/diner)
+**Table `utilisateurs`** : `id`, `email`, `mot_de_passe_hash`, `nom`, `est_admin`, `cree_le`
+
+**Table `invitations`** : `id`, `token`, `utilise`, `cree_par` (→ utilisateurs), `cree_le`
+
+**Table `favoris`** : `utilisateur_id`, `recette_id` (clé primaire composite)
+
+**Table `selections`** : `utilisateur_id`, `recette_id` (clé primaire composite)
+
+**Table `calendrier`** : `id`, `date` (YYYY-MM-DD), `recette_id`, `moment` (dejeuner/diner), `utilisateur_id`
 
 ## Catégories disponibles
 
