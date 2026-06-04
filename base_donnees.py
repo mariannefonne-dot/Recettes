@@ -32,8 +32,11 @@ def obtenir_connexion():
 def initialiser_bd():
     conn = obtenir_connexion()
     try:
-        cur = conn.cursor()
         if USE_POSTGRES:
+            # En PostgreSQL, on utilise autocommit pour les DDL afin qu'une erreur
+            # sur une instruction n'annule pas toutes les autres.
+            conn.autocommit = True
+            cur = conn.cursor()
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS recettes (
                     id SERIAL PRIMARY KEY,
@@ -90,11 +93,11 @@ def initialiser_bd():
                     utilisateur_id INTEGER REFERENCES utilisateurs(id)
                 )
             """)
-            # Ajoute la colonne utilisateur_id si elle n'existe pas encore (migration).
+            # Migration : ajoute utilisateur_id à calendrier si la colonne manque.
             try:
                 cur.execute("ALTER TABLE calendrier ADD COLUMN utilisateur_id INTEGER REFERENCES utilisateurs(id)")
             except Exception:
-                pass
+                pass  # La colonne existe déjà, c'est normal.
         else:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS recettes (
@@ -172,7 +175,8 @@ def initialiser_bd():
                 cur.execute("ALTER TABLE calendrier ADD COLUMN utilisateur_id INTEGER")
             except Exception:
                 pass
-        conn.commit()
+        if not USE_POSTGRES:
+            conn.commit()
     finally:
         conn.close()
 
