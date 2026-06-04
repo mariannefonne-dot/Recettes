@@ -1222,3 +1222,100 @@ main {
   font-size: 0.85rem;
   font-weight: bold;
 }
+
+/* --- Page compte --- */
+
+.page-compte {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-compte h1 {
+  font-size: 1.8rem;
+  color: #c0392b;
+}
+
+.carte-compte {
+  background: white;
+  border: 1px solid #e0d8cc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.carte-compte h2 {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid #e0d8cc;
+  padding-bottom: 0.5rem;
+}
+
+.info-ligne {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #888;
+  min-width: 80px;
+  font-size: 0.9rem;
+}
+
+.texte-invitation {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.bloc-lien-invitation {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.champ-lien-invitation {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e0d8cc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #555;
+  font-family: monospace;
+  background: #f9f6f1;
+}
+
+.bouton-copier {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: Georgia, serif;
+}
+
+.bouton-copier:hover {
+  background-color: #a93226;
+}
+
+/* Lien utilisateur dans le header */
+.utilisateur-nom-lien {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.utilisateur-nom-lien:hover {
+  color: white;
+  text-decoration: underline;
+}

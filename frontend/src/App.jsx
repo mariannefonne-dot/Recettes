@@ -1,5 +1,4 @@
 import { Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
-import { useState } from "react";
 import { FournisseurAuth, useAuth } from "./contexte/Auth.jsx";
 import MiniCalendrier from "./components/MiniCalendrier.jsx";
 import Accueil from "./pages/Accueil.jsx";
@@ -12,37 +11,11 @@ import FormulaireRecette from "./pages/FormulaireRecette.jsx";
 import Connexion from "./pages/Connexion.jsx";
 import Inscription from "./pages/Inscription.jsx";
 import Setup from "./pages/Setup.jsx";
-import { creerInvitation } from "./api.js";
-
-// Bouton réservé à l'admin pour générer et copier un lien d'invitation.
-function BoutonInviter() {
-  const [message, setMessage] = useState("");
-
-  async function genererLien() {
-    try {
-      const data = await creerInvitation();
-      const lien = `${window.location.origin}/inscription?token=${data.token}`;
-      await navigator.clipboard.writeText(lien);
-      setMessage("Lien copié !");
-    } catch {
-      setMessage("Erreur lors de la génération.");
-    }
-    setTimeout(() => setMessage(""), 3000);
-  }
-
-  return (
-    <span className="bouton-inviter-conteneur">
-      <button onClick={genererLien} className="bouton-mes-recettes" title="Générer un lien d'invitation">
-        ✉️ Inviter
-      </button>
-      {message && <span className="message-copie">{message}</span>}
-    </span>
-  );
-}
+import Compte from "./pages/Compte.jsx";
 
 // Layout principal (header + sidebar) — affiché uniquement quand l'utilisateur est connecté.
 function MiseEnPage() {
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
   const location = useLocation();
   const sansSidebar = location.pathname === "/calendrier";
 
@@ -51,11 +24,9 @@ function MiseEnPage() {
       <header>
         <Link to="/" className="logo">Mes Recettes</Link>
         <div className="header-actions">
-          <span className="utilisateur-nom">👤 {utilisateur?.nom}</span>
-          {utilisateur?.est_admin && <BoutonInviter />}
+          <Link to="/compte" className="utilisateur-nom-lien">👤 {utilisateur?.nom}</Link>
           <Link to="/mes-recettes" className="bouton-mes-recettes">🔖 Ma sélection</Link>
           <Link to="/panier" className="bouton-mes-recettes">🛒 Panier</Link>
-          <button onClick={deconnexion} className="bouton-deconnexion">Déconnexion</button>
         </div>
       </header>
       <div className={`mise-en-page ${sansSidebar ? "sans-sidebar" : ""}`}>
@@ -70,6 +41,7 @@ function MiseEnPage() {
             <Route path="/recette/:id" element={<DetailRecette />} />
             <Route path="/ajouter" element={<FormulaireRecette />} />
             <Route path="/modifier/:id" element={<FormulaireRecette />} />
+            <Route path="/compte" element={<Compte />} />
           </Routes>
         </main>
         {!sansSidebar && <MiniCalendrier />}
