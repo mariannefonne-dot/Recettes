@@ -1,86 +1,129 @@
-"""Couche d'accès aux données : tout passe par SQLite.
+"""Couche d'accès aux données.
 
-Les ingrédients et les étapes sont des listes. SQLite ne sait pas stocker
-une liste directement, on les enregistre donc en JSON dans une colonne texte
-et on les reconvertit en liste à la lecture. C'est volontairement simple :
-pas de tables séparées pour les ingrédients, ce qui suffit largement ici.
+En développement local : SQLite (aucune configuration nécessaire).
+En production sur Render : PostgreSQL, détecté via la variable DATABASE_URL.
 """
 
 import json
 import os
 import sqlite3
 
+# Render injecte automatiquement DATABASE_URL quand une base PostgreSQL est liée.
+DATABASE_URL = os.environ.get("DATABASE_URL")
+USE_POSTGRES = bool(DATABASE_URL)
 CHEMIN_BD = os.environ.get("CHEMIN_BD", "recettes.db")
+
+# Placeholder SQL : ? pour SQLite, %s pour PostgreSQL.
+PH = "%s" if USE_POSTGRES else "?"
+
+if USE_POSTGRES:
+    import psycopg2
+    import psycopg2.extras
 
 
 def obtenir_connexion():
-    connexion = sqlite3.connect(CHEMIN_BD)
-    # Accès aux colonnes par leur nom (ex : ligne["titre"]) plutôt que par index.
-    connexion.row_factory = sqlite3.Row
-    return connexion
+    if USE_POSTGRES:
+        return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    conn = sqlite3.connect(CHEMIN_BD)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _exec(conn, sql, params=()):
+    cur = conn.cursor()
+    cur.execute(sql, params)
+    return cur
 
 
 def initialiser_bd():
-    with obtenir_connexion() as connexion:
-        connexion.execute("""
-            CREATE TABLE IF NOT EXISTS recettes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                titre TEXT NOT NULL,
-                categorie TEXT DEFAULT '',
-                ingredients TEXT NOT NULL,
-                etapes TEXT NOT NULL,
-                temps_preparation INTEGER NOT NULL,
-                portions INTEGER NOT NULL,
-                image TEXT DEFAULT '',
-                favori INTEGER DEFAULT 0
-            )
-        """)
-        # Ajoute les colonnes si la table existait déjà sans elles.
-        for colonne in ["favori INTEGER DEFAULT 0", "selectionne INTEGER DEFAULT 0"]:
-            try:
-                connexion.execute(f"ALTER TABLE recettes ADD COLUMN {colonne}")
-            except Exception:
-                pass
-        connexion.commit()
-        connexion.execute("""
-            CREATE TABLE IF NOT EXISTS calendrier (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT NOT NULL,
-                recette_id INTEGER NOT NULL,
-                moment TEXT DEFAULT 'diner',
-                FOREIGN KEY (recette_id) REFERENCES recettes(id)
-            )
-        """)
-        connexion.commit()
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        if USE_POSTGRES:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS recettes (
+                    id SERIAL PRIMARY KEY,
+                    titre TEXT NOT NULL,
+                    categorie TEXT DEFAULT '',
+                    ingredients TEXT NOT NULL,
+                    etapes TEXT NOT NULL,
+                    temps_preparation INTEGER NOT NULL,
+                    portions INTEGER NOT NULL,
+                    image TEXT DEFAULT '',
+                    favori BOOLEAN DEFAULT FALSE,
+                    selectionne BOOLEAN DEFAULT FALSE
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS calendrier (
+                    id SERIAL PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    recette_id INTEGER NOT NULL REFERENCES recettes(id),
+                    moment TEXT DEFAULT 'diner'
+                )
+            """)
+        else:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS recettes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    titre TEXT NOT NULL,
+                    categorie TEXT DEFAULT '',
+                    ingredients TEXT NOT NULL,
+                    etapes TEXT NOT NULL,
+                    temps_preparation INTEGER NOT NULL,
+                    portions INTEGER NOT NULL,
+                    image TEXT DEFAULT '',
+                    favori INTEGER DEFAULT 0,
+                    selectionne INTEGER DEFAULT 0
+                )
+            """)
+            for col in ["favori INTEGER DEFAULT 0", "selectionne INTEGER DEFAULT 0"]:
+                try:
+                    cur.execute(f"ALTER TABLE recettes ADD COLUMN {col}")
+                except Exception:
+                    pass
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS calendrier (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    recette_id INTEGER NOT NULL,
+                    moment TEXT DEFAULT 'diner',
+                    FOREIGN KEY (recette_id) REFERENCES recettes(id)
+                )
+            """)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _ligne_vers_recette(ligne):
-    """Transforme une ligne SQLite en dictionnaire prêt à être envoyé en JSON."""
+    """Transforme une ligne en dictionnaire recette."""
+    d = dict(ligne)
     return {
-        "id": ligne["id"],
-        "titre": ligne["titre"],
-        "categorie": ligne["categorie"] or "",
-        "ingredients": json.loads(ligne["ingredients"]),
-        "etapes": json.loads(ligne["etapes"]),
-        "temps_preparation": ligne["temps_preparation"],
-        "portions": ligne["portions"],
-        "image": ligne["image"] or "",
-        "favori": bool(ligne["favori"]),
-        "selectionne": bool(ligne["selectionne"]),
+        "id": d["id"],
+        "titre": d["titre"],
+        "categorie": d["categorie"] or "",
+        "ingredients": json.loads(d["ingredients"]),
+        "etapes": json.loads(d["etapes"]),
+        "temps_preparation": d["temps_preparation"],
+        "portions": d["portions"],
+        "image": d["image"] or "",
+        "favori": bool(d["favori"]),
+        "selectionne": bool(d["selectionne"]),
     }
 
 
 def lister_recettes(recherche="", categorie=""):
     recherche = recherche.strip().lower()
     categorie = categorie.strip()
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM recettes ORDER BY id DESC")
+        recettes = [_ligne_vers_recette(r) for r in cur.fetchall()]
+    finally:
+        conn.close()
 
-    with obtenir_connexion() as connexion:
-        lignes = connexion.execute("SELECT * FROM recettes ORDER BY id DESC").fetchall()
-
-    recettes = [_ligne_vers_recette(ligne) for ligne in lignes]
-
-    # On filtre en Python plutôt qu'en SQL : la recherche doit aussi regarder
-    # à l'intérieur de la liste d'ingrédients, ce qui est plus lisible ici.
     if recherche:
         recettes = [
             r for r in recettes
@@ -89,128 +132,148 @@ def lister_recettes(recherche="", categorie=""):
         ]
     if categorie:
         recettes = [r for r in recettes if r["categorie"] == categorie]
-
     return recettes
 
 
 def obtenir_recette(id_recette):
-    with obtenir_connexion() as connexion:
-        ligne = connexion.execute(
-            "SELECT * FROM recettes WHERE id = ?", (id_recette,)
-        ).fetchone()
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM recettes WHERE id = {PH}", (id_recette,))
+        ligne = cur.fetchone()
+    finally:
+        conn.close()
     return _ligne_vers_recette(ligne) if ligne else None
 
 
 def creer_recette(donnees):
-    with obtenir_connexion() as connexion:
-        curseur = connexion.execute(
-            """
-            INSERT INTO recettes
-                (titre, categorie, ingredients, etapes, temps_preparation, portions, image)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                donnees["titre"],
-                donnees.get("categorie", ""),
-                json.dumps(donnees["ingredients"], ensure_ascii=False),
-                json.dumps(donnees["etapes"], ensure_ascii=False),
-                donnees["temps_preparation"],
-                donnees["portions"],
-                donnees.get("image", ""),
-            ),
-        )
-        connexion.commit()
-        return obtenir_recette(curseur.lastrowid)
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        if USE_POSTGRES:
+            cur.execute(
+                f"""INSERT INTO recettes
+                    (titre, categorie, ingredients, etapes, temps_preparation, portions, image)
+                    VALUES ({PH},{PH},{PH},{PH},{PH},{PH},{PH}) RETURNING id""",
+                (
+                    donnees["titre"], donnees.get("categorie", ""),
+                    json.dumps(donnees["ingredients"], ensure_ascii=False),
+                    json.dumps(donnees["etapes"], ensure_ascii=False),
+                    donnees["temps_preparation"], donnees["portions"],
+                    donnees.get("image", ""),
+                ),
+            )
+            new_id = cur.fetchone()["id"]
+        else:
+            cur.execute(
+                f"""INSERT INTO recettes
+                    (titre, categorie, ingredients, etapes, temps_preparation, portions, image)
+                    VALUES ({PH},{PH},{PH},{PH},{PH},{PH},{PH})""",
+                (
+                    donnees["titre"], donnees.get("categorie", ""),
+                    json.dumps(donnees["ingredients"], ensure_ascii=False),
+                    json.dumps(donnees["etapes"], ensure_ascii=False),
+                    donnees["temps_preparation"], donnees["portions"],
+                    donnees.get("image", ""),
+                ),
+            )
+            new_id = cur.lastrowid
+        conn.commit()
+    finally:
+        conn.close()
+    return obtenir_recette(new_id)
 
 
 def modifier_recette(id_recette, donnees):
     if obtenir_recette(id_recette) is None:
         return None
-    with obtenir_connexion() as connexion:
-        connexion.execute(
-            """
-            UPDATE recettes SET
-                titre = ?, categorie = ?, ingredients = ?, etapes = ?,
-                temps_preparation = ?, portions = ?, image = ?
-            WHERE id = ?
-            """,
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"""UPDATE recettes SET
+                titre={PH}, categorie={PH}, ingredients={PH}, etapes={PH},
+                temps_preparation={PH}, portions={PH}, image={PH}
+                WHERE id={PH}""",
             (
-                donnees["titre"],
-                donnees.get("categorie", ""),
+                donnees["titre"], donnees.get("categorie", ""),
                 json.dumps(donnees["ingredients"], ensure_ascii=False),
                 json.dumps(donnees["etapes"], ensure_ascii=False),
-                donnees["temps_preparation"],
-                donnees["portions"],
-                donnees.get("image", ""),
-                id_recette,
+                donnees["temps_preparation"], donnees["portions"],
+                donnees.get("image", ""), id_recette,
             ),
         )
-        connexion.commit()
-    return obtenir_recette(id_recette)
-
-
-def basculer_selection(id_recette):
-    """Ajoute ou retire la recette de la sélection personnelle."""
-    recette = obtenir_recette(id_recette)
-    if recette is None:
-        return None
-    nouveau = 0 if recette["selectionne"] else 1
-    with obtenir_connexion() as connexion:
-        connexion.execute(
-            "UPDATE recettes SET selectionne = ? WHERE id = ?", (nouveau, id_recette)
-        )
-        connexion.commit()
+        conn.commit()
+    finally:
+        conn.close()
     return obtenir_recette(id_recette)
 
 
 def basculer_favori(id_recette):
-    """Passe la recette en favori si elle ne l'est pas, et inversement."""
     recette = obtenir_recette(id_recette)
     if recette is None:
         return None
-    nouveau = 0 if recette["favori"] else 1
-    with obtenir_connexion() as connexion:
-        connexion.execute(
-            "UPDATE recettes SET favori = ? WHERE id = ?", (nouveau, id_recette)
-        )
-        connexion.commit()
+    nouveau = not recette["favori"]
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"UPDATE recettes SET favori={PH} WHERE id={PH}", (nouveau, id_recette))
+        conn.commit()
+    finally:
+        conn.close()
+    return obtenir_recette(id_recette)
+
+
+def basculer_selection(id_recette):
+    recette = obtenir_recette(id_recette)
+    if recette is None:
+        return None
+    nouveau = not recette["selectionne"]
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"UPDATE recettes SET selectionne={PH} WHERE id={PH}", (nouveau, id_recette))
+        conn.commit()
+    finally:
+        conn.close()
     return obtenir_recette(id_recette)
 
 
 def supprimer_recette(id_recette):
-    with obtenir_connexion() as connexion:
-        curseur = connexion.execute(
-            "DELETE FROM recettes WHERE id = ?", (id_recette,)
-        )
-        connexion.commit()
-        return curseur.rowcount > 0
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM recettes WHERE id={PH}", (id_recette,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def lister_calendrier(debut, fin):
-    """Retourne toutes les entrées du calendrier entre deux dates (incluses)."""
-    with obtenir_connexion() as connexion:
-        lignes = connexion.execute(
-            """
-            SELECT c.id, c.date, c.moment,
-                   r.id as recette_id, r.titre, r.image, r.temps_preparation, r.portions
-            FROM calendrier c
-            JOIN recettes r ON c.recette_id = r.id
-            WHERE c.date BETWEEN ? AND ?
-            ORDER BY c.date, c.moment
-            """,
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT c.id, c.date, c.moment,
+                r.id as recette_id, r.titre, r.image, r.temps_preparation, r.portions
+                FROM calendrier c
+                JOIN recettes r ON c.recette_id = r.id
+                WHERE c.date BETWEEN {PH} AND {PH}
+                ORDER BY c.date, c.moment""",
             (debut, fin),
-        ).fetchall()
+        )
+        lignes = cur.fetchall()
+    finally:
+        conn.close()
     return [
         {
-            "id": l["id"],
-            "date": l["date"],
-            "moment": l["moment"],
+            "id": dict(l)["id"], "date": dict(l)["date"], "moment": dict(l)["moment"],
             "recette": {
-                "id": l["recette_id"],
-                "titre": l["titre"],
-                "image": l["image"] or "",
-                "temps_preparation": l["temps_preparation"],
-                "portions": l["portions"],
+                "id": dict(l)["recette_id"], "titre": dict(l)["titre"],
+                "image": dict(l)["image"] or "",
+                "temps_preparation": dict(l)["temps_preparation"],
+                "portions": dict(l)["portions"],
             },
         }
         for l in lignes
@@ -218,25 +281,44 @@ def lister_calendrier(debut, fin):
 
 
 def ajouter_au_calendrier(date, recette_id, moment):
-    with obtenir_connexion() as connexion:
-        curseur = connexion.execute(
-            "INSERT INTO calendrier (date, recette_id, moment) VALUES (?, ?, ?)",
-            (date, recette_id, moment),
-        )
-        connexion.commit()
-        return curseur.lastrowid
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        if USE_POSTGRES:
+            cur.execute(
+                f"INSERT INTO calendrier (date, recette_id, moment) VALUES ({PH},{PH},{PH}) RETURNING id",
+                (date, recette_id, moment),
+            )
+            new_id = cur.fetchone()["id"]
+        else:
+            cur.execute(
+                f"INSERT INTO calendrier (date, recette_id, moment) VALUES ({PH},{PH},{PH})",
+                (date, recette_id, moment),
+            )
+            new_id = cur.lastrowid
+        conn.commit()
+        return new_id
+    finally:
+        conn.close()
 
 
 def supprimer_du_calendrier(id_entree):
-    with obtenir_connexion() as connexion:
-        curseur = connexion.execute("DELETE FROM calendrier WHERE id = ?", (id_entree,))
-        connexion.commit()
-        return curseur.rowcount > 0
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM calendrier WHERE id={PH}", (id_entree,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
 
 
 def lister_categories():
-    with obtenir_connexion() as connexion:
-        lignes = connexion.execute(
-            "SELECT DISTINCT categorie FROM recettes WHERE categorie != '' ORDER BY categorie"
-        ).fetchall()
-    return [ligne["categorie"] for ligne in lignes]
+    conn = obtenir_connexion()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT DISTINCT categorie FROM recettes WHERE categorie != '' ORDER BY categorie")
+        lignes = cur.fetchall()
+    finally:
+        conn.close()
+    return [dict(l)["categorie"] for l in lignes]
